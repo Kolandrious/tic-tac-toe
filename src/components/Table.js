@@ -14,7 +14,7 @@ export default props => {
       <div className="table" style={styles}>
         {props.table.map((row, index) => {
           return (
-            <Row key={index} cells={row} move={props.move} />
+            <Row wonPlayer={props.wonPlayer} key={index} cells={row} move={props.move} />
           );
         })}
       </div>

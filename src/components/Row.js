@@ -11,6 +11,7 @@ export default props => {
       {props.cells.map(cell => {
         return (
           <Cell
+            wonPlayer={props.wonPlayer}
             key={cell.id}
             cell={cell}
             move={props.move}

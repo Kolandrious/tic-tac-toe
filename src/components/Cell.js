@@ -15,7 +15,7 @@ export default ({ cell, ...props }) => {
   };
 
   function tryToMove() {
-    if (cell.mark === '0') {
+    if (cell.mark === '0' && !props.wonPlayer) {
       props.move(cell);
     }
   }

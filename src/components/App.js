@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Table from './Table';
+import Info from './Info';
 
 export default class App extends Component {
   constructor(props) {
@@ -9,6 +10,8 @@ export default class App extends Component {
       currentPlayer: 'X',
       dimension: 3,
       cells: null,
+      inARow: 3,
+      wonPlayer: null
     };
 
     this.changePlayer = this.changePlayer.bind(this);
@@ -48,7 +51,11 @@ export default class App extends Component {
       }
       cells.push(row);
     }
-    this.setState(() => ({ cells }));
+    this.setState(() => ({
+      cells,
+      currentPlayer: 'X',
+      wonPlayer: null
+    }));
     return cells;
   }
 
@@ -60,19 +67,61 @@ export default class App extends Component {
   }
 
   checkForWin(cell) {
-    const {id, x, y, mark} = cell;
-    const {cells, currentPlayer, dimension} = this.state;
+    const {x, y} = cell;
+    const {cells, currentPlayer, dimension, inARow} = this.state;
     const directions = [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]];
+
+    let playerWin = false;
+
     directions.forEach(direction => {
+    let counter = 1;
+
       if (checkDirection(direction)) {
-        if (checkDirection(direction.map(el => (el*(-1)))))
-          console.log(`${currentPlayer} WIN!`);
-        else if (checkDirection(direction.map(el => (el*2))))
-          console.log(`${currentPlayer} WIN!`);
+        // if found neighbour at given direction, check this line
+        counter ++;
+        let i = 2;
+        while (true) {
+        // continue searching in this direction
+          if (checkDirection( direction.map( el => ( el*i ) ) )) {
+            // if found next further
+            counter++;
+            i++;
+          } else {
+            break;
+          }
+        }
+      }
+      const newDirection = direction.map(el => el*(-1));
+      // change direction to opposing
+      if (checkDirection(newDirection)) {
+        // if found neighbour at opposing direction, check this line
+        counter ++;
+        let i = 2;
+        while (true) {
+        // continue searching in this direction
+          if (checkDirection( newDirection.map( el => ( el*i ) ) )) {
+            // if found next further
+            counter++;
+            i++;
+          } else {
+            break;
+          }
+        }
+      }
+      if (counter >= inARow) {
+        playerWin = true;
       }
     })
 
-    this.changePlayer();
+    if (playerWin) {
+      console.log (`PLAYER ${currentPlayer} WIN!`);
+      this.setState(state => ({ wonPlayer: currentPlayer }));
+    }
+    else {
+      this.changePlayer();
+    }
+
+    return (playerWin);
 
     function checkDirection(direction) {
       const moveX = x+direction[0];
@@ -86,19 +135,31 @@ export default class App extends Component {
   }
 
   render() {
+    const {dimension, inARow, wonPlayer, currentPlayer} = this.state;
     return (
       <div style={{fontFamily: 'Sans-Serif'}}>
         <input
           style={{width: '100px'}}
           type="number"
           placeholder="specify dimension of field"
-          value={this.state.dimension}
-          onChange={(event) => this.setState({ dimension: event.target.value })}
+          value={dimension}
+          onChange={(event) => this.setState({
+            dimension: event.target.value,
+            inARow: event.target.value
+          })}
         />
-        <button onClick={() => this.setDimension()}>SET</button>
-        <Table table={this.state.cells} move={cell => this.makeMove(cell)} />
-        <h1>{this.state.cells === null ? '3 in a row to win!' : null}</h1>
-        <h3>{this.state.cells === null ? null : '3 in a row to win!'}</h3>
+        <button onClick={() => this.setDimension()}>{wonPlayer? `RESTART` : `SET`}</button>
+        <Table
+          table={this.state.cells}
+          wonPlayer={wonPlayer}
+          move={cell => this.makeMove(cell)}
+        />
+        <Info
+          dimension={dimension}
+          inARow={inARow}
+          wonPlayer={wonPlayer}
+          currentPlayer={currentPlayer}
+        />
       </div>
     );
   }
